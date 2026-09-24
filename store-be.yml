@@ -55,7 +55,7 @@ spec:
       - name: ghcr-secret # created manually via `kubectl create secret docker-registry`
       containers:
       - name: store-be
-        image: ghcr.io/waleedyk07/store-be:latest
+        image: ghcr.io/waleedyk07/store-be:0.1
         ports:
         - containerPort: 8080
         envFrom:
