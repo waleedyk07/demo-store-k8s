@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: store-be-config
+  namespace: prod-core
+data:
+  DB_HOST: postgres-service.prod-core.svc.cluster.local # postgres runs in default namespace (postgres.yml)
+  DB_PORT: "5432"
+  DB_NAME: store_db
+  DB_SCHEMA: store_schema
+  DB_USERNAME: postgres
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: store-be-secret
+  namespace: prod-core
+type: Opaque
+stringData:
+  DB_PASSWORD: root # must match POSTGRES_PASSWORD in postgres.yml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: store-be-service
+  namespace: prod-core
+  labels:
+    app: store-be
+spec:
+  type: ClusterIP # internal only, reachable from outside via ingress /api/
+  selector:
+    app: store-be
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: store-be
+  namespace: prod-core
+  labels:
+    app: store-be
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: store-be # has to match .spec.template.metadata.labels
+  template:
+    metadata:
+      labels:
+        app: store-be
+    spec:
+      imagePullSecrets:
+      - name: ghcr-secret # created manually via `kubectl create secret docker-registry`
+      containers:
+      - name: store-be
+        image: ghcr.io/waleedyk07/store-be:latest
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: store-be-config
+        - secretRef:
+            name: store-be-secret
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5

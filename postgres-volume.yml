@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-volume-0 # {} = StatefulSet ordinal, postgres-pod-0
+  # no namespace: PersistentVolumes are cluster-scoped
+  labels:
+    app: postgres
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain # PV and its data survive deletion of the PVC
+  storageClassName: "" # static PV, keeps the default 'standard' class from provisioning one
+  local:
+    path: /mnt/data/postgres-volume-0 # must exist on the node before the pod starts
+  nodeAffinity: # local volumes live on one node, so postgres is always scheduled there
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - demo-store-k8s-worker2
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-volume-claim-0
+  namespace: prod-core # must match the namespace of the postgres StatefulSet
+  labels:
+    app: postgres
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: "" # must match the PV
+  volumeName: postgres-volume-0 # bind to this PV only
