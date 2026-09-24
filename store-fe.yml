@@ -30,7 +30,7 @@ metadata:
   labels:
     app: store-fe
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: store-fe # has to match .spec.template.metadata.labels
@@ -43,7 +43,7 @@ spec:
       - name: ghcr-secret
       containers:
       - name: store-fe
-        image: ghcr.io/waleedyk07/store-fe:0.1
+        image: ghcr.io/waleedyk07/store-fe:0.2
         ports:
         - containerPort: 80
         envFrom:

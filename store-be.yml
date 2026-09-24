@@ -42,7 +42,7 @@ metadata:
   labels:
     app: store-be
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: store-be # has to match .spec.template.metadata.labels
